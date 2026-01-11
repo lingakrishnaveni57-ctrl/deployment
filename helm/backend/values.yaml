@@ -1,0 +1,9 @@
+replicas: 1
+
+image:
+  repository: 72091968/backend
+  tag: latest
+
+service:
+  port: 5000
+
