@@ -13,7 +13,9 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Docker Login
-      run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+      run: |
+        echo "${{ secrets.DOCKER_PASSWORD }}" | docker login \
+        -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
 
     - name: Build Backend
       run: |
@@ -29,6 +31,18 @@ jobs:
       run: |
         mkdir -p ~/.kube
         echo "${{ secrets.KUBECONFIG }}" > ~/.kube/config
+
+    - name: Debug folders
+      run: |
+        pwd
+        ls
+        ls helm
+        ls helm/backend
+        ls helm/frontend
+
+    - name: Test Cluster Access
+      run: |
+        kubectl get nodes
 
     - name: Deploy Backend
       run: |
