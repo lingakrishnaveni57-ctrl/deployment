@@ -31,7 +31,7 @@ jobs:
         echo "${{ secrets.KUBECONFIG }}" > ~/.kube/config
 
     
-        helm upgrade --install backen    # 8️⃣ Deploy Frontend
+        helm upgrade --install backend    # 8️⃣ Deploy Frontend
     - name: Deploy Frontend
       run: |
         helm upgrade --install frontend ./f
