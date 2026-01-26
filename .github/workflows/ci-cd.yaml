@@ -1,55 +1,52 @@
-name: CI-CD with Helm Deploy
+name: CI-CD with Helm Deploy (Kind)
 
 on:
   push:
     branches: [ "main" ]
 
 jobs:
-  build-deploy:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout
+    # 1️⃣ Checkout the repo
+    - name: Checkout code
       uses: actions/checkout@v4
 
+    # 2️⃣ Login to Docker (if you push images to Docker Hub)
     - name: Docker Login
-      run: |
-        echo "${{ secrets.DOCKER_PASSWORD }}" | docker login \
-        -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+      run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
 
+    # 3️⃣ Build & Push Backend image
     - name: Build Backend
       run: |
         docker build -t ${{ secrets.DOCKER_USERNAME }}/backend:latest ./backend
         docker push ${{ secrets.DOCKER_USERNAME }}/backend:latest
 
+    # 4️⃣ Build & Push Frontend image
     - name: Build Frontend
       run: |
         docker build -t ${{ secrets.DOCKER_USERNAME }}/frontend:latest ./frontend
         docker push ${{ secrets.DOCKER_USERNAME }}/frontend:latest
 
-    - name: Setup Kubeconfig
-      run: |
-        mkdir -p ~/.kube
-        echo "${{ secrets.KUBECONFIG }}" > ~/.kube/config
+    # 5️⃣ Setup Kubernetes cluster using Kind
+    - name: Create Kind Cluster
+      uses: helm/kind-action@v1
 
-    - name: Debug folders
-      run: |
-        pwd
-        ls
-        ls helm
-        ls helm/backend
-        ls helm/frontend
-
-    - name: Test Cluster Access
+    # 6️⃣ Verify the cluster is running
+    - name: Verify Cluster
       run: |
         kubectl get nodes
+        kubectl get pods --all-namespaces
 
+    # 7️⃣ Deploy Backend with Helm
     - name: Deploy Backend
       run: |
         helm upgrade --install backend ./helm/backend \
           --namespace default \
           --create-namespace
 
+    # 8️⃣ Deploy Frontend with Helm
     - name: Deploy Frontend
       run: |
         helm upgrade --install frontend ./helm/frontend \
